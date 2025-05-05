@@ -97,6 +97,134 @@ graph LR
     style F fill:#ff99ff
 ```
 
+## Detailed Encryption Implementation
+
+### AES-256 Encryption
+
+#### Encryption Process
+
+1. **Key Preparation**:
+
+   - Takes the user-provided key of any length
+   - Pads or truncates the key to exactly 32 bytes (256 bits) using padding with '0' characters
+   - Example: Key "password" becomes "password000000000000000000000000"
+
+2. **Initialization Vector (IV)**:
+
+   - Generates a random 16-byte (128-bit) initialization vector
+   - Ensures each encryption produces different ciphertext even with the same key and plaintext
+   - Critical for security to prevent pattern recognition attacks
+
+3. **Encryption Algorithm**:
+
+   - Uses the AES (Advanced Encryption Standard) in CBC mode
+   - Processes the plaintext in 128-bit blocks
+   - Each block is XORed with the previous ciphertext block (or IV for first block)
+   - The result is then transformed using multiple substitution and permutation rounds
+
+4. **Result Packaging**:
+   - Converts the encrypted bytes to Base64 format for safe text representation
+   - Creates a JSON structure containing two fields:
+     ```json
+     {
+       "iv": "base64EncodedInitializationVector",
+       "encrypted": "base64EncodedEncryptedData"
+     }
+     ```
+   - JSON-encodes this structure to create the final output string
+
+#### Decryption Process
+
+1. **Input Parsing**:
+
+   - Parses the JSON string to extract the IV and encrypted data components
+   - Decodes the Base64-encoded IV and encrypted data back to bytes
+
+2. **Key Reconstruction**:
+
+   - Processes the provided decryption key exactly as during encryption
+   - Pads or truncates to 32 bytes (256 bits)
+
+3. **Decryption Algorithm**:
+
+   - Initializes AES-256 decryptor with the padded key
+   - Uses the extracted IV to set the initial state
+   - Reverses the encryption process: applies inverse substitutions and permutations
+   - Reverses the XOR operations with previous blocks
+
+4. **Error Handling**:
+   - Implements comprehensive try-catch error handling
+   - Returns null if any stage of decryption fails (JSON parsing, Base64 decoding, decryption)
+   - Common failures: incorrect key, tampered data, invalid format
+
+### DES (Salsa20) Implementation
+
+#### Encryption Process
+
+1. **Key Preparation**:
+
+   - Takes the user-provided key of any length
+   - Pads or truncates to exactly 32 bytes (256 bits)
+   - Note: Though labeled "DES" for user simplicity, actually uses Salsa20 algorithm which requires 256-bit keys
+
+2. **Initialization Vector (IV)**:
+
+   - Generates a smaller 8-byte (64-bit) IV, sufficient for Salsa20's security properties
+   - Cryptographically random to ensure unique encryption results
+
+3. **Encryption Algorithm**:
+
+   - Uses Salsa20 stream cipher instead of traditional DES
+   - Salsa20 creates a keystream based on the key and IV
+   - The plaintext is XORed with this keystream to produce ciphertext
+   - Chosen for superior security and performance over original DES
+
+4. **Result Packaging**:
+   - Identical structure to AES: Base64-encoded data in a JSON envelope
+     ```json
+     {
+       "iv": "base64EncodedInitializationVector",
+       "encrypted": "base64EncodedEncryptedData"
+     }
+     ```
+   - This consistent format allows the app to handle both algorithms uniformly
+
+#### Decryption Process
+
+1. **Input Parsing**:
+
+   - Same as AES: parses JSON and extracts Base64-encoded components
+
+2. **Key Reconstruction**:
+
+   - Pads/truncates the key to 32 bytes (256 bits) for Salsa20
+   - Must match exactly what was used during encryption
+
+3. **Decryption Algorithm**:
+
+   - Reconstructs the Salsa20 keystream using the key and stored IV
+   - XORs the ciphertext with this identical keystream to recover plaintext
+   - The XOR operation is its own inverse, which is why the same operation works for both encryption and decryption
+
+4. **Error Handling**:
+   - Identical robust error handling as with AES
+   - Ensures graceful failure without app crashes
+   - Returns null when decryption fails for any reason
+
+### Algorithm Selection Considerations
+
+- **AES-256**: Higher security standard, widely tested, slightly more processing intensive
+- **Salsa20 (labeled as DES)**: Excellent performance, strong security, lightweight algorithm
+- Both implementations use industry-standard encryption packages with proper IV handling and key management
+
+### Security Measures
+
+- IVs are never reused across encryptions
+- Keys never leave the device
+- All cryptographic operations happen locally
+- Encrypted data contains no hints about the original content
+- JSON structure preserves all necessary information for proper decryption
+
 ## Getting Started
 
 ### Prerequisites
