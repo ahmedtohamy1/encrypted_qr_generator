@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../provider/qr_providers.dart';
+import '../provider/qr_providers.dart' as qr_providers;
 
 class QrStyleDialog extends ConsumerWidget {
   const QrStyleDialog({super.key});
@@ -12,12 +12,14 @@ class QrStyleDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Get current values from providers
-    final foregroundColor = ref.watch(qrForegroundColorProvider);
-    final backgroundColor = ref.watch(qrBackgroundColorProvider);
-    final qrSize = ref.watch(qrSizeProvider);
-    final errorCorrectionLevel = ref.watch(qrErrorCorrectionLevelProvider);
-    final showLogo = ref.watch(qrShowLogoProvider);
-    final logoImagePath = ref.watch(qrLogoImagePathProvider);
+    final foregroundColor = ref.watch(qr_providers.qrForegroundColorProvider);
+    final backgroundColor = ref.watch(qr_providers.qrBackgroundColorProvider);
+    final qrSize = ref.watch(qr_providers.qrSizeProvider);
+    final errorCorrectionLevel = ref.watch(
+      qr_providers.qrErrorCorrectionLevelProvider,
+    );
+    final showLogo = ref.watch(qr_providers.qrShowLogoProvider);
+    final logoImagePath = ref.watch(qr_providers.qrLogoImagePathProvider);
 
     // Predefined colors for selection
     final colorOptions = [
@@ -58,7 +60,9 @@ class QrStyleDialog extends ConsumerWidget {
                     child: GestureDetector(
                       onTap: () {
                         ref
-                            .read(qrForegroundColorProvider.notifier)
+                            .read(
+                              qr_providers.qrForegroundColorProvider.notifier,
+                            )
                             .setColor(color);
                       },
                       child: CircleAvatar(
@@ -101,7 +105,9 @@ class QrStyleDialog extends ConsumerWidget {
                     child: GestureDetector(
                       onTap: () {
                         ref
-                            .read(qrBackgroundColorProvider.notifier)
+                            .read(
+                              qr_providers.qrBackgroundColorProvider.notifier,
+                            )
                             .setColor(color);
                       },
                       child: CircleAvatar(
@@ -139,7 +145,7 @@ class QrStyleDialog extends ConsumerWidget {
               divisions: 15,
               label: qrSize.toStringAsFixed(0),
               onChanged: (value) {
-                ref.read(qrSizeProvider.notifier).setSize(value);
+                ref.read(qr_providers.qrSizeProvider.notifier).setSize(value);
               },
             ),
 
@@ -177,7 +183,7 @@ class QrStyleDialog extends ConsumerWidget {
               selected: {errorCorrectionLevel},
               onSelectionChanged: (Set<int> newSelection) {
                 ref
-                    .read(qrErrorCorrectionLevelProvider.notifier)
+                    .read(qr_providers.qrErrorCorrectionLevelProvider.notifier)
                     .setLevel(newSelection.first);
               },
             ),
@@ -195,10 +201,12 @@ class QrStyleDialog extends ConsumerWidget {
                 Switch(
                   value: showLogo,
                   onChanged: (value) {
-                    ref.read(qrShowLogoProvider.notifier).setShowLogo(value);
+                    ref
+                        .read(qr_providers.qrShowLogoProvider.notifier)
+                        .setShowLogo(value);
                     if (!value) {
                       ref
-                          .read(qrLogoImagePathProvider.notifier)
+                          .read(qr_providers.qrLogoImagePathProvider.notifier)
                           .setImagePath(null);
                     }
                   },
@@ -251,7 +259,9 @@ class QrStyleDialog extends ConsumerWidget {
 
                         if (pickedFile != null) {
                           ref
-                              .read(qrLogoImagePathProvider.notifier)
+                              .read(
+                                qr_providers.qrLogoImagePathProvider.notifier,
+                              )
                               .setImagePath(pickedFile.path);
                         }
                       },

@@ -12,6 +12,7 @@ import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/model/encrypted_payload.dart';
+import '../provider/qr_providers.dart' as qr_providers;
 import '../viewmodel/qr_viewmodel.dart';
 
 class DecryptScreen extends ConsumerStatefulWidget {
@@ -171,7 +172,17 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Decrypt QR Code')),
+      appBar: AppBar(
+        title: const Text('Decrypt QR Code'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.brightness_6),
+            onPressed: () {
+              ref.read(qr_providers.appThemeProvider.notifier).toggleTheme();
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           if (_isScanning) ...[

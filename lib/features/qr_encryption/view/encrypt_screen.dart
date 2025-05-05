@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../provider/qr_providers.dart';
+import '../provider/qr_providers.dart' as qr_providers;
 import '../viewmodel/qr_viewmodel.dart';
 import 'qr_style_dialog.dart';
 
@@ -54,8 +54,12 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
     });
 
     // Set values in providers
-    ref.read(textToEncryptProvider.notifier).setText(_textController.text);
-    ref.read(encryptionKeyProvider.notifier).setKey(_keyController.text);
+    ref
+        .read(qr_providers.textToEncryptProvider.notifier)
+        .setText(_textController.text);
+    ref
+        .read(qr_providers.encryptionKeyProvider.notifier)
+        .setKey(_keyController.text);
 
     // Perform encryption
     final success = await ref.read(qrViewModelProvider.notifier).encryptText();
@@ -70,7 +74,7 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
   }
 
   Future<void> _shareQrCodeAsImage() async {
-    final qrData = ref.read(encryptedQrDataProvider);
+    final qrData = ref.read(qr_providers.encryptedQrDataProvider);
     if (qrData == null) return;
 
     setState(() {
@@ -102,7 +106,7 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
   }
 
   void _copyQrCode() {
-    final qrData = ref.read(encryptedQrDataProvider);
+    final qrData = ref.read(qr_providers.encryptedQrDataProvider);
     if (qrData == null) return;
 
     final jsonStr = jsonEncode(qrData.toJson());
@@ -128,16 +132,20 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final qrData = ref.watch(encryptedQrDataProvider);
-    final encryptionAlgorithm = ref.watch(encryptionAlgorithmProvider);
+    final qrData = ref.watch(qr_providers.encryptedQrDataProvider);
+    final encryptionAlgorithm = ref.watch(
+      qr_providers.encryptionAlgorithmProvider,
+    );
 
     // QR styling options
-    final foregroundColor = ref.watch(qrForegroundColorProvider);
-    final backgroundColor = ref.watch(qrBackgroundColorProvider);
-    final qrSize = ref.watch(qrSizeProvider);
-    final errorCorrectionLevel = ref.watch(qrErrorCorrectionLevelProvider);
-    final showLogo = ref.watch(qrShowLogoProvider);
-    final logoImagePath = ref.watch(qrLogoImagePathProvider);
+    final foregroundColor = ref.watch(qr_providers.qrForegroundColorProvider);
+    final backgroundColor = ref.watch(qr_providers.qrBackgroundColorProvider);
+    final qrSize = ref.watch(qr_providers.qrSizeProvider);
+    final errorCorrectionLevel = ref.watch(
+      qr_providers.qrErrorCorrectionLevelProvider,
+    );
+    final showLogo = ref.watch(qr_providers.qrShowLogoProvider);
+    final logoImagePath = ref.watch(qr_providers.qrLogoImagePathProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -146,7 +154,7 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
           IconButton(
             icon: const Icon(Icons.brightness_6),
             onPressed: () {
-              ref.read(appThemeProvider.notifier).toggleTheme();
+              ref.read(qr_providers.appThemeProvider.notifier).toggleTheme();
             },
           ),
         ],
@@ -191,7 +199,7 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
               selected: {encryptionAlgorithm},
               onSelectionChanged: (Set<String> newSelection) {
                 ref
-                    .read(encryptionAlgorithmProvider.notifier)
+                    .read(qr_providers.encryptionAlgorithmProvider.notifier)
                     .setAlgorithm(newSelection.first);
               },
             ),

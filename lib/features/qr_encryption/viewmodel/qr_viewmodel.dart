@@ -1,6 +1,7 @@
 import 'package:encrypted_qr_generator/core/model/encrypted_payload.dart';
 import 'package:encrypted_qr_generator/core/utils/crypto_helper.dart';
-import 'package:encrypted_qr_generator/features/qr_encryption/provider/qr_providers.dart';
+import 'package:encrypted_qr_generator/features/qr_encryption/provider/qr_providers.dart'
+    as qr_providers;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'qr_viewmodel.g.dart';
@@ -15,9 +16,9 @@ class QrViewModel extends _$QrViewModel {
 
   Future<bool> encryptText() async {
     try {
-      final text = ref.read(textToEncryptProvider);
-      final key = ref.read(encryptionKeyProvider);
-      final algorithm = ref.read(encryptionAlgorithmProvider);
+      final text = ref.read(qr_providers.textToEncryptProvider);
+      final key = ref.read(qr_providers.encryptionKeyProvider);
+      final algorithm = ref.read(qr_providers.encryptionAlgorithmProvider);
 
       if (text.isEmpty || key.isEmpty) {
         return false;
@@ -26,7 +27,9 @@ class QrViewModel extends _$QrViewModel {
       final encryptedData = _encryptData(text, key, algorithm);
       final payload = EncryptedPayload(algo: algorithm, data: encryptedData);
 
-      ref.read(encryptedQrDataProvider.notifier).setQrData(payload);
+      ref
+          .read(qr_providers.encryptedQrDataProvider.notifier)
+          .setQrData(payload);
       return true;
     } catch (e) {
       return false;
