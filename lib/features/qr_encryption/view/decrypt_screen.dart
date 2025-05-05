@@ -7,11 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
-    as ml_kit;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+import 'package:scan/scan.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/model/encrypted_payload.dart';
@@ -67,26 +66,17 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
       });
 
       try {
-        // Create barcode scanner with QR code format
-        final barcodeScanner = ml_kit.BarcodeScanner(
-          formats: [ml_kit.BarcodeFormat.qrCode],
-        );
+        // Use scan package to parse QR from image
+        final qrCode = await Scan.parse(pickedFile.path);
 
-        // Process the image
-        final inputImage = ml_kit.InputImage.fromFilePath(pickedFile.path);
-        final barcodes = await barcodeScanner.processImage(inputImage);
-
-        if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
-          _processQrData(barcodes.first.rawValue!);
+        if (qrCode != null) {
+          _processQrData(qrCode);
         } else {
           _showToast('No QR code found in image');
           setState(() {
             _isScanning = true;
           });
         }
-
-        // Close scanner
-        barcodeScanner.close();
       } catch (e) {
         _showToast('Error scanning image: ${e.toString()}');
         setState(() {

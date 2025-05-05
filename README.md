@@ -25,6 +25,7 @@ A secure Flutter application for creating, customizing, and sharing encrypted QR
 ### Sharing & Scanning
 
 - **Direct QR Scanning**: Scan encrypted QR codes using your device camera
+- **Gallery Image Scanning**: Scan QR codes from saved images in your gallery
 - **Image Sharing**: Share QR codes as high-quality images
 - **Multi-Format Sharing**: Share decrypted text as text or images
 
