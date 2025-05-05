@@ -105,7 +105,7 @@ class CryptoHelper {
   /// while maintaining the same interface.
   ///
   /// The method performs the following steps:
-  /// 1. Pads the encryption key to 8 bytes (64 bits)
+  /// 1. Pads the encryption key to 32 bytes (256 bits) for Salsa20
   /// 2. Creates an initialization vector (IV) of 8 bytes
   /// 3. Encrypts the plaintext with Salsa20
   /// 4. Returns a JSON string containing both the encrypted data and IV
@@ -119,12 +119,13 @@ class CryptoHelper {
   /// [encryptionKey] The secret key used for encryption
   /// [returns] A JSON string containing the encrypted data and IV
   static String encryptWithDES(String plaintext, String encryptionKey) {
-    // Pad key to 8 bytes (64 bits) for DES/Salsa20
-    final paddedKey = encryptionKey.padRight(8, '0').substring(0, 8);
+    // Pad key to 32 bytes (256 bits) for Salsa20 instead of 8 bytes
+    // The encrypt package's Salsa20 implementation requires a 32-byte key
+    final paddedKey = encryptionKey.padRight(32, '0').substring(0, 32);
 
     // Create key and initialization vector
     final keyObject = encrypt.Key.fromUtf8(paddedKey);
-    final initVector = encrypt.IV.fromLength(8); // DES uses 8 byte IV
+    final initVector = encrypt.IV.fromLength(8); // 8 byte IV for Salsa20
 
     // Create encrypter and encrypt the plaintext
     final encrypter = encrypt.Encrypter(encrypt.Salsa20(keyObject));
@@ -144,7 +145,7 @@ class CryptoHelper {
   ///
   /// This method attempts to:
   /// 1. Parse the JSON string containing encrypted data and IV
-  /// 2. Pad the decryption key to 8 bytes (64 bits)
+  /// 2. Pad the decryption key to 32 bytes (256 bits) for Salsa20
   /// 3. Recreate the initialization vector from the stored data
   /// 4. Decrypt the data using Salsa20
   ///
@@ -168,8 +169,8 @@ class CryptoHelper {
       final encryptedPayload =
           jsonDecode(encryptedJsonData) as Map<String, dynamic>;
 
-      // Pad key to 8 bytes (64 bits) for DES/Salsa20
-      final paddedKey = decryptionKey.padRight(8, '0').substring(0, 8);
+      // Pad key to 32 bytes (256 bits) for Salsa20 instead of 8 bytes
+      final paddedKey = decryptionKey.padRight(32, '0').substring(0, 32);
 
       // Create key and initialization vector from stored data
       final keyObject = encrypt.Key.fromUtf8(paddedKey);

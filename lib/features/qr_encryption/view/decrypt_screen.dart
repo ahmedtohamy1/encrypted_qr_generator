@@ -8,9 +8,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
-import 'package:scan/scan.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/model/encrypted_payload.dart';
@@ -66,17 +66,33 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
       });
 
       try {
-        // Use scan package to parse QR from image
-        final qrCode = await Scan.parse(pickedFile.path);
+        // Create a new controller for scanning from image
+        final controller = MobileScannerController();
 
-        if (qrCode != null) {
-          _processQrData(qrCode);
+        // Use the analyzeImage method to scan the image
+        final result = await controller.analyzeImage(pickedFile.path);
+
+        // Check if any barcodes were found
+        if (result != null && result.barcodes.isNotEmpty) {
+          // Process the first barcode
+          final barcode = result.barcodes.first;
+          if (barcode.rawValue != null) {
+            _processQrData(barcode.rawValue!);
+          } else {
+            _showToast('Invalid QR code format');
+            setState(() {
+              _isScanning = true;
+            });
+          }
         } else {
           _showToast('No QR code found in image');
           setState(() {
             _isScanning = true;
           });
         }
+
+        // Dispose the controller when done
+        await controller.dispose();
       } catch (e) {
         _showToast('Error scanning image: ${e.toString()}');
         setState(() {

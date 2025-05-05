@@ -33,296 +33,352 @@ class QrStyleDialog extends ConsumerWidget {
       Colors.indigo,
     ];
 
-    return AlertDialog(
-      title: const Text('QR Code Style'),
-      content: SingleChildScrollView(
+    return Dialog(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.8,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: 500,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Foreground color selection
-            const Text(
-              'Foreground Color',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: colorOptions.length,
-                itemBuilder: (context, index) {
-                  final color = colorOptions[index];
-                  final isSelected = foregroundColor.value == color.value;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () {
-                        ref
-                            .read(
-                              qr_providers.qrForegroundColorProvider.notifier,
-                            )
-                            .setColor(color);
-                      },
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundColor: color,
-                        child:
-                            isSelected
-                                ? const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 18,
-                                )
-                                : null,
-                      ),
-                    ),
-                  );
-                },
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'QR Code Style',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Background color selection
-            const Text(
-              'Background Color',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: colorOptions.length,
-                itemBuilder: (context, index) {
-                  final color = colorOptions[index];
-                  final isSelected = backgroundColor.value == color.value;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () {
-                        ref
-                            .read(
-                              qr_providers.qrBackgroundColorProvider.notifier,
-                            )
-                            .setColor(color);
-                      },
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundColor: color,
-                        child:
-                            isSelected
-                                ? Icon(
-                                  Icons.check,
-                                  color:
-                                      color == Colors.black
-                                          ? Colors.white
-                                          : Colors.black,
-                                  size: 18,
-                                )
-                                : null,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // QR size slider
-            const Text(
-              'QR Code Size',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: qrSize,
-              min: 150,
-              max: 300,
-              divisions: 15,
-              label: qrSize.toStringAsFixed(0),
-              onChanged: (value) {
-                ref.read(qr_providers.qrSizeProvider.notifier).setSize(value);
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // Error correction level
-            const Text(
-              'Error Correction Level',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment<int>(
-                  value: 0,
-                  label: Text('L'),
-                  tooltip: 'Low - 7% error recovery',
-                ),
-                ButtonSegment<int>(
-                  value: 1,
-                  label: Text('M'),
-                  tooltip: 'Medium - 15% error recovery',
-                ),
-                ButtonSegment<int>(
-                  value: 2,
-                  label: Text('Q'),
-                  tooltip: 'Quality - 25% error recovery',
-                ),
-                ButtonSegment<int>(
-                  value: 3,
-                  label: Text('H'),
-                  tooltip: 'High - 30% error recovery',
-                ),
-              ],
-              selected: {errorCorrectionLevel},
-              onSelectionChanged: (Set<int> newSelection) {
-                ref
-                    .read(qr_providers.qrErrorCorrectionLevelProvider.notifier)
-                    .setLevel(newSelection.first);
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // Custom logo toggle and selection
-            Row(
-              children: [
-                const Text(
-                  'Add Custom Logo',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                Switch(
-                  value: showLogo,
-                  onChanged: (value) {
-                    ref
-                        .read(qr_providers.qrShowLogoProvider.notifier)
-                        .setShowLogo(value);
-                    if (!value) {
-                      ref
-                          .read(qr_providers.qrLogoImagePathProvider.notifier)
-                          .setImagePath(null);
-                    }
-                  },
-                ),
-              ],
-            ),
-            if (showLogo) ...[
-              const SizedBox(height: 8),
-              Center(
-                child: Column(
-                  children: [
-                    if (logoImagePath != null)
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(logoImagePath),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.image, color: Colors.grey),
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        // Pick image from gallery
-                        final imagePicker = ImagePicker();
-                        final pickedFile = await imagePicker.pickImage(
-                          source: ImageSource.gallery,
-                          maxWidth: 300,
-                          maxHeight: 300,
-                        );
-
-                        if (pickedFile != null) {
-                          ref
-                              .read(
-                                qr_providers.qrLogoImagePathProvider.notifier,
-                              )
-                              .setImagePath(pickedFile.path);
-                        }
-                      },
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text('Choose Logo'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 16),
-
-            // Preview of QR style
-            const Text(
-              'Preview',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                color: backgroundColor,
-                child: Center(
-                  child: Stack(
-                    alignment: Alignment.center,
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(width: 60, height: 60, color: foregroundColor),
-                      if (showLogo && logoImagePath != null)
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(2),
+                      // Foreground color selection
+                      const Text(
+                        'Foreground Color',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 50,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: colorOptions.length,
+                          itemBuilder: (context, index) {
+                            final color = colorOptions[index];
+                            final isSelected =
+                                foregroundColor.value == color.value;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(
+                                        qr_providers
+                                            .qrForegroundColorProvider
+                                            .notifier,
+                                      )
+                                      .setColor(color);
+                                },
+                                child: CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: color,
+                                  child:
+                                      isSelected
+                                          ? const Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 18,
+                                          )
+                                          : null,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Background color selection
+                      const Text(
+                        'Background Color',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 50,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: colorOptions.length,
+                          itemBuilder: (context, index) {
+                            final color = colorOptions[index];
+                            final isSelected =
+                                backgroundColor.value == color.value;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(
+                                        qr_providers
+                                            .qrBackgroundColorProvider
+                                            .notifier,
+                                      )
+                                      .setColor(color);
+                                },
+                                child: CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: color,
+                                  child:
+                                      isSelected
+                                          ? Icon(
+                                            Icons.check,
+                                            color:
+                                                color == Colors.black
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                            size: 18,
+                                          )
+                                          : null,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // QR size slider
+                      const Text(
+                        'QR Code Size',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Slider(
+                        value: qrSize,
+                        min: 150,
+                        max: 300,
+                        divisions: 15,
+                        label: qrSize.toStringAsFixed(0),
+                        onChanged: (value) {
+                          ref
+                              .read(qr_providers.qrSizeProvider.notifier)
+                              .setSize(value);
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Error correction level
+                      const Text(
+                        'Error Correction Level',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<int>(
+                          segments: const [
+                            ButtonSegment<int>(
+                              value: 0,
+                              label: Text('L'),
+                              tooltip: 'Low - 7% error recovery',
+                            ),
+                            ButtonSegment<int>(
+                              value: 1,
+                              label: Text('M'),
+                              tooltip: 'Medium - 15% error recovery',
+                            ),
+                            ButtonSegment<int>(
+                              value: 2,
+                              label: Text('Q'),
+                              tooltip: 'Quality - 25% error recovery',
+                            ),
+                            ButtonSegment<int>(
+                              value: 3,
+                              label: Text('H'),
+                              tooltip: 'High - 30% error recovery',
+                            ),
+                          ],
+                          selected: {errorCorrectionLevel},
+                          onSelectionChanged: (Set<int> newSelection) {
+                            ref
+                                .read(
+                                  qr_providers
+                                      .qrErrorCorrectionLevelProvider
+                                      .notifier,
+                                )
+                                .setLevel(newSelection.first);
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Custom logo toggle and selection
+                      Row(
+                        children: [
+                          const Text(
+                            'Add Custom Logo',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(2),
-                            child: Image.file(
-                              File(logoImagePath),
-                              fit: BoxFit.cover,
+                          const Spacer(),
+                          Switch(
+                            value: showLogo,
+                            onChanged: (value) {
+                              ref
+                                  .read(
+                                    qr_providers.qrShowLogoProvider.notifier,
+                                  )
+                                  .setShowLogo(value);
+                              if (!value) {
+                                ref
+                                    .read(
+                                      qr_providers
+                                          .qrLogoImagePathProvider
+                                          .notifier,
+                                    )
+                                    .setImagePath(null);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      if (showLogo) ...[
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Column(
+                            children: [
+                              if (logoImagePath != null)
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      File(logoImagePath),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.image,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  // Pick image from gallery
+                                  final imagePicker = ImagePicker();
+                                  final pickedFile = await imagePicker
+                                      .pickImage(
+                                        source: ImageSource.gallery,
+                                        maxWidth: 300,
+                                        maxHeight: 300,
+                                      );
+
+                                  if (pickedFile != null) {
+                                    ref
+                                        .read(
+                                          qr_providers
+                                              .qrLogoImagePathProvider
+                                              .notifier,
+                                        )
+                                        .setImagePath(pickedFile.path);
+                                  }
+                                },
+                                icon: const Icon(Icons.photo_library),
+                                label: const Text('Choose Logo'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 16),
+
+                      // Preview of QR style
+                      const Text(
+                        'Preview',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          color: backgroundColor,
+                          child: Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  color: foregroundColor,
+                                ),
+                                if (showLogo && logoImagePath != null)
+                                  Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(2),
+                                      child: Image.file(
+                                        File(logoImagePath),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Close'),
+              ),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('Close'),
-        ),
-      ],
     );
   }
 }
