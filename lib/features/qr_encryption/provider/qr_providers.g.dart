@@ -73,6 +73,103 @@ final encryptedQrDataProvider =
     );
 
 typedef _$EncryptedQrData = Notifier<EncryptedPayload?>;
+String _$qrForegroundColorHash() => r'1dd8f45d474a537970e606f5f2d6b4eea726cf21';
+
+/// See also [QrForegroundColor].
+@ProviderFor(QrForegroundColor)
+final qrForegroundColorProvider =
+    NotifierProvider<QrForegroundColor, Color>.internal(
+      QrForegroundColor.new,
+      name: r'qrForegroundColorProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$qrForegroundColorHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$QrForegroundColor = Notifier<Color>;
+String _$qrBackgroundColorHash() => r'0ced4a9103a033006cc76dc0e8350ed5e2e2da23';
+
+/// See also [QrBackgroundColor].
+@ProviderFor(QrBackgroundColor)
+final qrBackgroundColorProvider =
+    NotifierProvider<QrBackgroundColor, Color>.internal(
+      QrBackgroundColor.new,
+      name: r'qrBackgroundColorProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$qrBackgroundColorHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$QrBackgroundColor = Notifier<Color>;
+String _$qrSizeHash() => r'b220a73211910f3648be74bb6d352ce61b22001e';
+
+/// See also [QrSize].
+@ProviderFor(QrSize)
+final qrSizeProvider = NotifierProvider<QrSize, double>.internal(
+  QrSize.new,
+  name: r'qrSizeProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$qrSizeHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$QrSize = Notifier<double>;
+String _$qrErrorCorrectionLevelHash() =>
+    r'3f7b9104d696e717095a6053c54815343882eb80';
+
+/// See also [QrErrorCorrectionLevel].
+@ProviderFor(QrErrorCorrectionLevel)
+final qrErrorCorrectionLevelProvider =
+    NotifierProvider<QrErrorCorrectionLevel, int>.internal(
+      QrErrorCorrectionLevel.new,
+      name: r'qrErrorCorrectionLevelProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$qrErrorCorrectionLevelHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$QrErrorCorrectionLevel = Notifier<int>;
+String _$qrShowLogoHash() => r'df24feaf3b03aa4cbcfd552177593c71f489d445';
+
+/// See also [QrShowLogo].
+@ProviderFor(QrShowLogo)
+final qrShowLogoProvider = NotifierProvider<QrShowLogo, bool>.internal(
+  QrShowLogo.new,
+  name: r'qrShowLogoProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$qrShowLogoHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$QrShowLogo = Notifier<bool>;
+String _$qrLogoImagePathHash() => r'99a086f4c52469f0196502d2f148ef51c2bddf42';
+
+/// See also [QrLogoImagePath].
+@ProviderFor(QrLogoImagePath)
+final qrLogoImagePathProvider =
+    NotifierProvider<QrLogoImagePath, String?>.internal(
+      QrLogoImagePath.new,
+      name: r'qrLogoImagePathProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$qrLogoImagePathHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$QrLogoImagePath = Notifier<String?>;
 String _$appThemeHash() => r'1cd2a986075b1175c8c7c2363d59185cd3763672';
 
 /// See also [AppTheme].

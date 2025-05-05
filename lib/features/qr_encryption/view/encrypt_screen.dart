@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../provider/qr_providers.dart';
 import '../viewmodel/qr_viewmodel.dart';
+import 'qr_style_dialog.dart';
 
 class EncryptScreen extends ConsumerStatefulWidget {
   const EncryptScreen({super.key});
@@ -83,6 +85,10 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
     });
   }
 
+  void _showQrStyleDialog() {
+    showDialog(context: context, builder: (context) => const QrStyleDialog());
+  }
+
   void _showToast(String message) {
     Fluttertoast.showToast(
       msg: message,
@@ -97,6 +103,14 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
   Widget build(BuildContext context) {
     final qrData = ref.watch(encryptedQrDataProvider);
     final encryptionAlgorithm = ref.watch(encryptionAlgorithmProvider);
+
+    // QR styling options
+    final foregroundColor = ref.watch(qrForegroundColorProvider);
+    final backgroundColor = ref.watch(qrBackgroundColorProvider);
+    final qrSize = ref.watch(qrSizeProvider);
+    final errorCorrectionLevel = ref.watch(qrErrorCorrectionLevelProvider);
+    final showLogo = ref.watch(qrShowLogoProvider);
+    final logoImagePath = ref.watch(qrLogoImagePathProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -189,17 +203,26 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
             if (qrData != null) ...[
               const Divider(),
               const SizedBox(height: 8),
-              const Text(
-                'Generated QR Code:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Generated QR Code:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.palette),
+                    tooltip: 'Style QR Code',
+                    onPressed: _showQrStyleDialog,
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Center(
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: backgroundColor,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
@@ -213,9 +236,18 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
                   child: QrImageView(
                     data: jsonEncode(qrData.toJson()),
                     version: QrVersions.auto,
-                    size: 200,
-                    backgroundColor: Colors.white,
-                    errorCorrectionLevel: QrErrorCorrectLevel.H,
+                    size: qrSize,
+                    backgroundColor: backgroundColor,
+                    foregroundColor: foregroundColor,
+                    errorCorrectionLevel: errorCorrectionLevel,
+                    gapless: true,
+                    embeddedImage:
+                        showLogo && logoImagePath != null
+                            ? FileImage(File(logoImagePath))
+                            : null,
+                    embeddedImageStyle: const QrEmbeddedImageStyle(
+                      size: Size(50, 50),
+                    ),
                   ),
                 ),
               ),
