@@ -1,0 +1,33 @@
+name: encrypted_qr_generator
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  clipboard: ^0.1.3
+  encrypt: ^5.0.3
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  flutter_secure_storage: ^9.2.4
+  fluttertoast: ^8.2.12
+  json_annotation: ^4.8.1
+  qr_code_scanner_plus: ^2.0.10+1
+  qr_flutter: ^4.1.0
+  riverpod_annotation: ^2.6.1
+  share_plus: ^11.0.0
+
+dev_dependencies:
+  build_runner: ^2.4.15
+  custom_lint: ^0.7.5
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.6.5
+
+flutter:
+  uses-material-design: true

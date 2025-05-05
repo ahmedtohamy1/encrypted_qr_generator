@@ -1,0 +1,3 @@
+# encrypted_qr_generator
+
+A new Flutter project.
