@@ -40,7 +40,6 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
 
   @override
   void dispose() {
-    controller?.dispose();
     _keyController.dispose();
     super.dispose();
   }
