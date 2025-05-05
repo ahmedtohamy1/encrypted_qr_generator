@@ -96,10 +96,6 @@ graph LR
     style F fill:#ff99ff
 ```
 
-## Screenshots
-
-[Placeholder for app screenshots - Add screenshots of your app here]
-
 ## Getting Started
 
 ### Prerequisites
