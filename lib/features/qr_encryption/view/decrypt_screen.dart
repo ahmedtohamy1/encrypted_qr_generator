@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart'
+    as ml_kit;
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:share_plus/share_plus.dart';
@@ -51,6 +54,47 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
         _processQrData(scanData.code!);
       }
     });
+  }
+
+  Future<void> _pickImageAndScan() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _isScanning = false;
+      });
+
+      try {
+        // Create barcode scanner with QR code format
+        final barcodeScanner = ml_kit.BarcodeScanner(
+          formats: [ml_kit.BarcodeFormat.qrCode],
+        );
+
+        // Process the image
+        final inputImage = ml_kit.InputImage.fromFilePath(pickedFile.path);
+        final barcodes = await barcodeScanner.processImage(inputImage);
+
+        if (barcodes.isNotEmpty && barcodes.first.rawValue != null) {
+          _processQrData(barcodes.first.rawValue!);
+        } else {
+          _showToast('No QR code found in image');
+          setState(() {
+            _isScanning = true;
+          });
+        }
+
+        // Close scanner
+        barcodeScanner.close();
+      } catch (e) {
+        _showToast('Error scanning image: ${e.toString()}');
+        setState(() {
+          _isScanning = true;
+        });
+      }
+    }
   }
 
   void _processQrData(String data) {
@@ -202,11 +246,20 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
             ),
             Expanded(
               flex: 1,
-              child: Center(
-                child: const Text(
-                  'Scan a QR code containing encrypted data',
-                  style: TextStyle(fontSize: 16),
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Scan a QR code containing encrypted data',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _pickImageAndScan,
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Pick Image from Gallery'),
+                  ),
+                ],
               ),
             ),
           ] else if (_scannedPayload != null) ...[
