@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(
+    // Wrap the entire app with ProviderScope for Riverpod
+    const ProviderScope(child: App()),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -10,11 +16,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+      home: Scaffold(body: Center(child: Text('Hello World!'))),
     );
   }
 }

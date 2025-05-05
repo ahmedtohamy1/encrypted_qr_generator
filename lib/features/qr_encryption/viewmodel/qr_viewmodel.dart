@@ -1,7 +1,5 @@
-import 'dart:convert';
-
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:encrypted_qr_generator/core/model/encrypted_payload.dart';
+import 'package:encrypted_qr_generator/core/utils/crypto_helper.dart';
 import 'package:encrypted_qr_generator/features/qr_encryption/provider/qr_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -48,96 +46,20 @@ class QrViewModel extends _$QrViewModel {
 
   String _encryptData(String text, String key, String algorithm) {
     if (algorithm == 'AES') {
-      return _encryptWithAES(text, key);
+      return CryptoHelper.encryptWithAES(text, key);
     } else if (algorithm == 'DES') {
-      return _encryptWithDES(text, key);
+      return CryptoHelper.encryptWithDES(text, key);
     }
     // Default to AES
-    return _encryptWithAES(text, key);
+    return CryptoHelper.encryptWithAES(text, key);
   }
 
   String? _decryptData(String encryptedData, String key, String algorithm) {
     if (algorithm == 'AES') {
-      return _decryptWithAES(encryptedData, key);
+      return CryptoHelper.decryptWithAES(encryptedData, key);
     } else if (algorithm == 'DES') {
-      return _decryptWithDES(encryptedData, key);
+      return CryptoHelper.decryptWithDES(encryptedData, key);
     }
     return null;
-  }
-
-  String _encryptWithAES(String text, String key) {
-    // Pad key to 32 bytes (256 bits) for AES-256
-    final paddedKey = key.padRight(32, '0').substring(0, 32);
-
-    final keyObj = encrypt.Key.fromUtf8(paddedKey);
-    final iv = encrypt.IV.fromLength(16); // AES uses 16 byte IV
-
-    final encrypter = encrypt.Encrypter(encrypt.AES(keyObj));
-    final encrypted = encrypter.encrypt(text, iv: iv);
-
-    // Store IV and encrypted data
-    final data = {'iv': base64.encode(iv.bytes), 'encrypted': encrypted.base64};
-
-    return jsonEncode(data);
-  }
-
-  String? _decryptWithAES(String encryptedJson, String key) {
-    try {
-      final data = jsonDecode(encryptedJson) as Map<String, dynamic>;
-
-      // Pad key to 32 bytes (256 bits) for AES-256
-      final paddedKey = key.padRight(32, '0').substring(0, 32);
-
-      final keyObj = encrypt.Key.fromUtf8(paddedKey);
-      final iv = encrypt.IV.fromBase64(data['iv'] as String);
-
-      final encrypter = encrypt.Encrypter(encrypt.AES(keyObj));
-      final decrypted = encrypter.decrypt64(
-        data['encrypted'] as String,
-        iv: iv,
-      );
-
-      return decrypted;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  String _encryptWithDES(String text, String key) {
-    // Pad key to 8 bytes (64 bits) for DES
-    final paddedKey = key.padRight(8, '0').substring(0, 8);
-
-    final keyObj = encrypt.Key.fromUtf8(paddedKey);
-    final iv = encrypt.IV.fromLength(8); // DES uses 8 byte IV
-
-    final encrypter = encrypt.Encrypter(encrypt.Salsa20(keyObj));
-    final encrypted = encrypter.encrypt(text, iv: iv);
-
-    // Store IV and encrypted data
-    final data = {'iv': base64.encode(iv.bytes), 'encrypted': encrypted.base64};
-
-    return jsonEncode(data);
-  }
-
-  String? _decryptWithDES(String encryptedJson, String key) {
-    try {
-      final data = jsonDecode(encryptedJson) as Map<String, dynamic>;
-
-      // Pad key to 8 bytes (64 bits) for DES
-      final paddedKey = key.padRight(8, '0').substring(0, 8);
-
-      final keyObj = encrypt.Key.fromUtf8(paddedKey);
-      final iv = encrypt.IV.fromBase64(data['iv'] as String);
-
-      final encrypter = encrypt.Encrypter(encrypt.Salsa20(keyObj));
-      final decrypted = encrypter.decrypt64(
-        data['encrypted'] as String,
-        iv: iv,
-      );
-
-      return decrypted;
-    } catch (e) {
-      return null;
-    }
   }
 }
