@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -23,6 +26,10 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
   final TextEditingController _textController = TextEditingController();
   final TextEditingController _keyController = TextEditingController();
   bool _isProcessing = false;
+  bool _isSharing = false;
+
+  // Key for capturing QR code as image
+  final GlobalKey _qrKey = GlobalKey();
 
   @override
   void dispose() {
@@ -62,16 +69,36 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
     }
   }
 
-  void _shareQrCode() async {
+  Future<void> _shareQrCodeAsImage() async {
     final qrData = ref.read(encryptedQrDataProvider);
     if (qrData == null) return;
 
-    final jsonStr = jsonEncode(qrData.toJson());
+    setState(() {
+      _isSharing = true;
+    });
 
-    await Share.share(
-      'Encrypted QR Data: $jsonStr',
-      subject: 'Encrypted QR Data',
-    );
+    try {
+      // Capture QR code as image
+      final boundary =
+          _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData!.buffer.asUint8List();
+
+      // Save to temporary file
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/qr_code.png');
+      await file.writeAsBytes(pngBytes);
+
+      // Share the file
+      await Share.shareXFiles([XFile(file.path)], text: 'Encrypted QR Code');
+    } catch (e) {
+      _showToast('Error sharing QR code: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isSharing = false;
+      });
+    }
   }
 
   void _copyQrCode() {
@@ -219,34 +246,37 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
               ),
               const SizedBox(height: 16),
               Center(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+                child: RepaintBoundary(
+                  key: _qrKey,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: QrImageView(
+                      data: jsonEncode(qrData.toJson()),
+                      version: QrVersions.auto,
+                      size: qrSize,
+                      backgroundColor: backgroundColor,
+                      foregroundColor: foregroundColor,
+                      errorCorrectionLevel: errorCorrectionLevel,
+                      gapless: true,
+                      embeddedImage:
+                          showLogo && logoImagePath != null
+                              ? FileImage(File(logoImagePath))
+                              : null,
+                      embeddedImageStyle: const QrEmbeddedImageStyle(
+                        size: Size(50, 50),
                       ),
-                    ],
-                  ),
-                  child: QrImageView(
-                    data: jsonEncode(qrData.toJson()),
-                    version: QrVersions.auto,
-                    size: qrSize,
-                    backgroundColor: backgroundColor,
-                    foregroundColor: foregroundColor,
-                    errorCorrectionLevel: errorCorrectionLevel,
-                    gapless: true,
-                    embeddedImage:
-                        showLogo && logoImagePath != null
-                            ? FileImage(File(logoImagePath))
-                            : null,
-                    embeddedImageStyle: const QrEmbeddedImageStyle(
-                      size: Size(50, 50),
                     ),
                   ),
                 ),
@@ -256,16 +286,26 @@ class _EncryptScreenState extends ConsumerState<EncryptScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   FilledButton.icon(
-                    onPressed: _shareQrCode,
-                    icon: const Icon(Icons.share),
-                    label: const Text('Share'),
+                    onPressed: _isSharing ? null : _shareQrCodeAsImage,
+                    icon:
+                        _isSharing
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                            : const Icon(Icons.share),
+                    label: const Text('Share QR'),
                     style: FilledButton.styleFrom(backgroundColor: Colors.blue),
                   ),
                   const SizedBox(width: 16),
                   FilledButton.icon(
                     onPressed: _copyQrCode,
                     icon: const Icon(Icons.copy),
-                    label: const Text('Copy'),
+                    label: const Text('Copy Data'),
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),

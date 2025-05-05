@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -19,9 +23,11 @@ class DecryptScreen extends ConsumerStatefulWidget {
 
 class _DecryptScreenState extends ConsumerState<DecryptScreen> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final GlobalKey _textKey = GlobalKey();
   QRViewController? controller;
   bool _isScanning = true;
   bool _isDecrypting = false;
+  bool _isSharing = false;
 
   EncryptedPayload? _scannedPayload;
   String? _decryptedText;
@@ -115,7 +121,38 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
     });
   }
 
-  void _shareText() async {
+  Future<void> _shareDecryptedTextAsImage() async {
+    if (_decryptedText == null) return;
+
+    setState(() {
+      _isSharing = true;
+    });
+
+    try {
+      // Capture the text container as an image
+      final boundary =
+          _textKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData!.buffer.asUint8List();
+
+      // Save to temporary file
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/decrypted_text.png');
+      await file.writeAsBytes(pngBytes);
+
+      // Share the file
+      await Share.shareXFiles([XFile(file.path)], text: 'Decrypted Message');
+    } catch (e) {
+      _showToast('Error sharing text as image: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isSharing = false;
+      });
+    }
+  }
+
+  void _shareTextAsText() async {
     if (_decryptedText == null) return;
 
     await Share.share(_decryptedText!, subject: 'Decrypted Message');
@@ -249,16 +286,22 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey.shade50,
-                        ),
-                        child: Text(
-                          _decryptedText!,
-                          style: const TextStyle(fontSize: 16),
+                      RepaintBoundary(
+                        key: _textKey,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                          ),
+                          child: Text(
+                            _decryptedText!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -274,12 +317,54 @@ class _DecryptScreenState extends ConsumerState<DecryptScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          FilledButton.icon(
-                            onPressed: _shareText,
-                            icon: const Icon(Icons.share),
-                            label: const Text('Share'),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                          PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'text') {
+                                _shareTextAsText();
+                              } else if (value == 'image') {
+                                _shareDecryptedTextAsImage();
+                              }
+                            },
+                            itemBuilder:
+                                (context) => [
+                                  const PopupMenuItem(
+                                    value: 'text',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.text_fields),
+                                        SizedBox(width: 8),
+                                        Text('Share as Text'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'image',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.image),
+                                        SizedBox(width: 8),
+                                        Text('Share as Image'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                            child: FilledButton.icon(
+                              onPressed: null,
+                              icon:
+                                  _isSharing
+                                      ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                      : const Icon(Icons.share),
+                              label: const Text('Share'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                              ),
                             ),
                           ),
                         ],
